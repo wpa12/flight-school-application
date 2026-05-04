@@ -87,15 +87,5 @@
                 @endif
             </div>
         </section>
-
-        <section class="border-t border-slate-200 bg-slate-50 py-10 dark:border-slate-800 dark:bg-slate-900/40">
-            <div class="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
-                <p class="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-                    Scheduling is handled through the school office or your student portal. Reach out on our
-                    <a href="{{ url('/about') }}" class="font-medium text-sky-600 underline-offset-2 hover:underline dark:text-sky-400">About</a>
-                    page for general questions.
-                </p>
-            </div>
-        </section>
     </main>
 @endsection

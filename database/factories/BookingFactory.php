@@ -2,13 +2,13 @@
 
 namespace Database\Factories;
 
-use App\Models\Booking;
-use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\Aircraft;
+use App\Models\Booking;
 use App\Models\Exam;
+use App\Models\Instructor;
 use App\Models\Lesson;
 use Carbon\Carbon;
-use App\Models\Instructor;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * @extends Factory<Booking>
@@ -16,7 +16,7 @@ use App\Models\Instructor;
 class BookingFactory extends Factory
 {
     /**
-     * Bookable types array for seeding
+     * @return array<int, class-string>
      */
     public static function bookableTypes(): array
     {
@@ -28,30 +28,45 @@ class BookingFactory extends Factory
     }
 
     /**
-     * Generate a random booking date in the past or future based on random number gen
+     * This function is used to get the duration in minutes for the bookable type
+     * @param string $bookableType
+     * @return int
      */
-    public static function generateBookingDate(): string
+    private static function durationMinutesForBookable(string $bookableType): int
     {
-        $decideDateInFutureOrPast = rand(0, 1);
-
-        return match ($decideDateInFutureOrPast) {
-            0 => Carbon::now()->subDays(fake()->numberBetween(1, 25))->format('Y-m-d'),
-            1 => Carbon::now()->addDays(fake()->numberBetween(1, 25))->format('Y-m-d'),
+        return match ($bookableType) {
+            Lesson::class => fake()->numberBetween(1, 6) * 30, // Lessons can last a minimum of 30 mins or max 3 hours
+            Exam::class => fake()->numberBetween(1, 4) * 15, // exams can last a minimum of 15mins or max 1 hour
+            Aircraft::class => fake()->numberBetween(1, 48) * 30, // aircraft can be booked for minimum of 30mins or for maximum of 24 hours
+            default => fake()->numberBetween(1, 8) * 30, // default is 1-8 hours
         };
     }
 
-    /**
-     * Generate the booking times for the booking
-     */
-    public static function generateBookingTimes(): array
+    private static function halfHourBlock(): int
     {
+        return fake()->randomElement([0, 30]);
+    }
 
-        $timeblock = self::halfHourBlock(); // just added this to ensure no silly times other than on the hour or half past the hour can be generated
-        $bookingDurationHours = self::generateBookingDuration(); // this is to ensure the booking duration is a realistic duration
+    /**
+     * @return array
+     */
+    public static function generateBookingTimes(string $bookableType): array
+    {
+        $durationMinutes = self::durationMinutesForBookable($bookableType); // throws in the bookable type and returns a duration in minutes
 
-        // lets assume that you can't book an aircraft out after 8am or after 11pm because the next hour is technically a next day
-        $timeStart = Carbon::now()->setTime(rand(8, 23), $timeblock)->addDays(rand(-25, 25)); // this is to ensure the time out is a realistic time
-        $timeEnd = $timeStart->copy()->addHours($bookingDurationHours)->setMinutes($timeblock); // this is to ensure the time in is a realistic time, you could book a flight at 11pm then do a night flight and come back at 3am the next day
+        $timeStart = Carbon::now()
+            ->startOfDay()
+            ->addDays(fake()->numberBetween(-25, 25))
+            ->setTime(
+                fake()->numberBetween(6, 20),
+                self::halfHourBlock()
+            );
+
+        $timeEnd = $timeStart->copy()->addMinutes($durationMinutes);
+
+        if ($timeEnd <= $timeStart) {
+            $timeEnd = $timeStart->copy()->addMinutes(max(30, $durationMinutes));
+        }
 
         return [
             'booking_date_time_start' => $timeStart,
@@ -59,38 +74,18 @@ class BookingFactory extends Factory
         ];
     }
 
-    /**
-     * Generate the booking duration for the booking
-     */
-    private static function generateBookingDuration(): int
-    {
-        return rand(1, 24);
-    }
-
-    /**
-     * Generate the half hour block for the booking
-     */
-    private static function halfHourBlock(): int
-    {
-        return rand(0, 1) * 30; // i've added this to ensure the booking duration is a realistic one of half hour increments
-    }
-
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
-        $bookableTypes = fake()->randomElement(self::bookableTypes());
+        $bookableType = fake()->randomElement(self::bookableTypes());
+        $times = self::generateBookingTimes($bookableType);
 
         return [
             'bookable_id' => fake()->numberBetween(1, 10),
-            'bookable_type' => $bookableTypes,
+            'bookable_type' => $bookableType,
             'user_id' => fake()->numberBetween(1, 10),
-            'instructor_id' => $bookableTypes === Lesson::class ? Instructor::query()->pluck('id')->random() : null,
-            'booking_date_time_start' => fake()->dateTime(),
-            'booking_date_time_end' => fake()->dateTime(),
+            'instructor_id' => $bookableType === Lesson::class ? Instructor::query()->pluck('id')->random() : null,
+            'booking_date_time_start' => $times['booking_date_time_start'],
+            'booking_date_time_end' => $times['booking_date_time_end'],
         ];
     }
 }
