@@ -24,4 +24,9 @@ class PageController extends Controller
                 ->get(),
         ]);
     }
+
+    public function exams(): View
+    {
+        return view('exams');
+    }
 }
