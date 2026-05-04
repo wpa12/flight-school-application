@@ -19,9 +19,9 @@
                 <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white">Explore</h2>
                 <ul class="mt-4 space-y-3">
                     <li><a href="{{ url('/') }}" class="text-sm text-slate-600 transition hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400">Home</a></li>
-                    <li><a href="{{ url('/about') }}" class="text-sm text-slate-600 transition hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400">About</a></li>
                     <li><a href="{{ url('/aircraft') }}" class="text-sm text-slate-600 transition hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400">Aircraft</a></li>
                     <li><a href="{{ url('/exams') }}" class="text-sm text-slate-600 transition hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400">Exams</a></li>
+                    <li><a href="{{ url('/instructors') }}" class="text-sm text-slate-600 transition hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400">Instructors</a></li>
                 </ul>
             </div>
 
