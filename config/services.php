@@ -14,6 +14,12 @@ return [
     |
     */
 
+    'stripe' => [
+        'secret_key' => env('STRIPE_SECRET_KEY'), // used for charging payments
+        'public_key' => env('STRIPE_PUBLIC_KEY'), // used for displaying the payment form
+        'currency' => 'gbp', // used for the currency of the payments
+    ],
+    
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],
