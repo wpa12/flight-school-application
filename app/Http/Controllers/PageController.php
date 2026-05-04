@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Aircraft;
+use App\Models\Instructor;
 use Illuminate\Contracts\View\View;
 
 class PageController extends Controller
@@ -28,5 +29,15 @@ class PageController extends Controller
     public function exams(): View
     {
         return view('exams');
+    }
+
+    public function instructors(): View
+    {
+        return view('instructors', [
+            'instructors' => Instructor::query()
+                ->orderBy('last_name')
+                ->orderBy('first_name')
+                ->get(),
+        ]);
     }
 }
