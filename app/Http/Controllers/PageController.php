@@ -40,4 +40,14 @@ class PageController extends Controller
                 ->get(),
         ]);
     }
+
+    public function login(): View
+    {
+        return view('login');
+    }
+
+    public function register(): View
+    {
+        return view('register');
+    }
 }
