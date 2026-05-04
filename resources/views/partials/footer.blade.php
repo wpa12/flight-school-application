@@ -1,4 +1,4 @@
-<footer class="mt-auto w-full border-t border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950">
+<footer class="mt-auto w-full border-t border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950 botton-0 absolute">
     <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
             <div class="sm:col-span-2 lg:col-span-2">
