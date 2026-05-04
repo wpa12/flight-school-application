@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\Aircraft;
 use Illuminate\Contracts\View\View;
 
 class PageController extends Controller
@@ -12,5 +12,16 @@ class PageController extends Controller
     public function index(): View
     {
         return view('index');
+    }
+
+    public function aircraft(): View
+    {
+        return view('aircraft', [
+            'aircraft' => Aircraft::query()
+                ->where('in_service', true)
+                ->orderBy('make')
+                ->orderBy('model')
+                ->get(),
+        ]);
     }
 }
