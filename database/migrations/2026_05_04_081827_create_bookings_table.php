@@ -20,6 +20,7 @@ return new class extends Migration
             $table->datetime('booking_date_time_end'); // date and time the plane is due to be back
             $table->decimal('total_price')->unsigned()->default(0);
             $table->string('booking_status')->default('pending');
+            $table->boolean('reminder_sent')->default(false);
             $table->timestamps();
         });
     }
