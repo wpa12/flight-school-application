@@ -14,11 +14,12 @@ class ExamSeeder extends Seeder
      */
     public function run(): void
     {
-        foreach (ExamFactory::examTypesCatalog() as $examType) {
+        foreach (ExamFactory::examTypesCatalogAndPrices() as $examType => $price) {
             Exam::factory()->create([
                 'type' => $examType,
                 'description' => fake()->sentence(),
-                'total_price' => fake()->numberBetween(2, 100, 250),
+                'duration_minutes' => fake()->randomElement([60, 90, 120]), // 1, 1.5 or 2 hours
+                'total_price' => $price,
             ]);
         }
 
