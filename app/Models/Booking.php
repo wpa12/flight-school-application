@@ -48,7 +48,7 @@ class Booking extends Model
         return match (true) {
             $bookable instanceof Aircraft => $bookable->registration . ': ' . $bookable->make . ' ' .$bookable->model,
             $bookable instanceof Exam => 'Exam:  ' . ($bookable->type ?? 'session'),
-            $bookable instanceof Lesson => 'Lesson: ' . ($bookable->type ?? 'session'),
+            $bookable instanceof Lesson => 'Lesson: ' . ($bookable->aircraft->registration ?? 'session'),
             default => class_basename($this->bookable_type ?? ''),
         };
     }

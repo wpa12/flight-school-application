@@ -19,11 +19,12 @@ class LoginController extends Controller
             'email' => $normaliseEmail,
             'password' => $request->input('password'),
         ], $remember)) {
-            return redirect()->back()->withErrors(['email' => 'Invalid credentials'])->onlyInput('email');
+
+            return redirect()->back()->withErrors(['email' => 'Invalid credentials']);
         }
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard'));
+        return redirect()->intended(route('dashboard.index'));
     }
 }

@@ -74,6 +74,17 @@ class BookingFactory extends Factory
         ];
     }
 
+    private static function totalPrice(string $bookableType, Carbon $start_date_time, Carbon $end_date_time): float {
+        $durationMinutes = $start_date_time->diffInMinutes($end_date_time);
+
+        return match($bookableType) {
+            Aircraft::class => fake()->randomFloat(2, 100, 1000) * ($durationMinutes / 60),
+            Exam::class => fake()->randomFloat(2, 100, 1000),
+            Lesson::class => fake()->randomFloat(2, 100, 1000),
+            default => fake()->randomFloat(2, 100, 1000),
+        };
+    }
+
     public function definition(): array
     {
         $bookableType = fake()->randomElement(self::bookableTypes());
@@ -86,6 +97,8 @@ class BookingFactory extends Factory
             'instructor_id' => $bookableType === Lesson::class ? Instructor::query()->pluck('id')->random() : null,
             'booking_date_time_start' => $times['booking_date_time_start'],
             'booking_date_time_end' => $times['booking_date_time_end'],
+            'total_price' => self::totalPrice($bookableType, $times['booking_date_time_start'], $times['booking_date_time_end']),
+            'booking_status' => fake()->randomElement(['pending', 'confirmed', 'cancelled']),
         ];
     }
 }

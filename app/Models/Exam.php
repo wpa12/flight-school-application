@@ -14,6 +14,23 @@ class Exam extends Model implements BookableContract
     /** @use HasFactory<\Database\Factories\ExamFactory> */
     use HasFactory;
 
+    /**
+     * deletes the bookings when an exam is deleted to avoid orphaned bookings
+     *
+     * @return void
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (Exam $exam) {
+            $exam->bookings()->delete();
+        });
+    }
+
+    /**
+     * polymorphic relationship to the bookings table
+     *
+     * @return MorphMany
+     */
     public function bookings(): MorphMany
     {
         return $this->morphMany(Booking::class, 'bookable'); // this is the relationship to the bookings table

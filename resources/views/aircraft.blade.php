@@ -67,6 +67,10 @@
                                                     </dd>
                                                 </div>
                                             </dl>
+                                            <a href="{{ route('aircraft.show', $plane) }}" class="mt-5 inline-flex items-center text-sm font-semibold text-sky-600 transition hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300">
+                                                View details
+                                                <span class="ml-1" aria-hidden="true">→</span>
+                                            </a>
                                         </div>
                                     </div>
                                 </article>

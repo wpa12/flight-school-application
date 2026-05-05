@@ -19,20 +19,20 @@ class RegistrationControllerTest extends TestCase
 
     public function test_registration_page_is_accessible(): void
     {
-        $response = $this->get('/register');
+        $response = $this->get(route('register'));
         $response->assertStatus(200);
         $response->assertSee('Register');
     }
 
     public function test_registration_page_contains_correct_content(): void
     {
-        $response = $this->get('/register');
+        $response = $this->get(route('register'));
         $response->assertSee('Register');
     }
 
     public function test_registration_page_redirects_to_dashboard_page_if_authenticated(): void
     {
         $user = User::factory()->create();
-        $this->actingAs($user)->get('/register')->assertRedirect(route('dashboard'));
+        $this->actingAs($user)->get(route('register'))->assertRedirect(route('dashboard.index'));
     }
 }
