@@ -1,20 +1,20 @@
 <?php
 
+use App\Http\Controllers\AircraftController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\LogoutController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\LogoutController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\RegistrationController;
 use Illuminate\Support\Facades\Route;
 
+// public routes
 Route::get('/', [PageController::class, 'index']);
-
 Route::get('/aircraft', [PageController::class, 'aircraft'])->name('aircraft');
-
 Route::get('/exams', [PageController::class, 'exams'])->name('exams');
-
 Route::get('/instructors', [PageController::class, 'instructors'])->name('instructors');
 
+// guest routes
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [PageController::class, 'login'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
@@ -23,24 +23,43 @@ Route::middleware('guest')->group(function (): void {
     Route::post('/register', [RegistrationController::class, 'register']);
 });
 
-Route::middleware('auth')->group(function (): void {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
-});
+// authenticated routes
+Route::middleware(['auth'])->group(function (): void {
+    Route::prefix('dashboard')->name('dashboard.')->group(function (): void {
+        
+        // dashboard index route
+        Route::get('/', [DashboardController::class, 'index'])->name('index');
+        
+        // booking dashboard routes
+        Route::prefix('bookings')->name('bookings.')->group(function (): void {
+            Route::get('/create', [DashboardController::class, 'adminPlaceholder'])->name('create');
+            Route::get('/{booking}/edit', [DashboardController::class, 'adminPlaceholder'])->name('edit');
+            Route::delete('/{booking}', [DashboardController::class, 'adminPlaceholder'])->name('destroy');
+        });
+        
+        // user dashboard routes
+        Route::prefix('users')->name('users.')->middleware('admin')->group(function (): void {
+            Route::get('/create', [DashboardController::class, 'adminPlaceholder'])->name('create');
+            Route::get('/{user}/edit', [DashboardController::class, 'adminPlaceholder'])->name('edit');
+        });
+        
+        // aircraft dashboard routes
+        Route::prefix('aircraft')->name('aircraft.')->middleware('admin')->group(function (): void {
+            Route::get('/create', [AircraftController::class, 'create'])->name('create');
+            Route::post('/create', [AircraftController::class, 'store'])->name('store');
+            Route::get('/{aircraft}', [AircraftController::class, 'show'])->name('show');
+            Route::put('/{aircraft}', [AircraftController::class, 'update'])->name('update');
+            Route::get('/{aircraft}/edit', [AircraftController::class, 'edit'])->name('edit');
+            Route::delete('/{aircraft}', [AircraftController::class, 'delete'])->name('delete');
+        });
+        
+        // instructor dashboard routes
+        Route::prefix('instructors')->name('instructors.')->middleware('admin')->group(function (): void {
+            Route::get('/create', [DashboardController::class, 'adminPlaceholder'])->name('create');
+            Route::get('/{instructor}/edit', [DashboardController::class, 'adminPlaceholder'])->name('edit');
+            Route::delete('/{instructor}', [DashboardController::class, 'adminPlaceholder'])->name('destroy');
+        });
 
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function (): void {
-    Route::get('bookings/create', [DashboardController::class, 'adminPlaceholder'])->name('bookings.create');
-    Route::get('bookings/{booking}/edit', [DashboardController::class, 'adminPlaceholder'])->name('bookings.edit');
-    Route::delete('bookings/{booking}', [DashboardController::class, 'adminPlaceholder'])->name('bookings.destroy');
-
-    Route::get('users/create', [DashboardController::class, 'adminPlaceholder'])->name('users.create');
-    Route::get('users/{user}/edit', [DashboardController::class, 'adminPlaceholder'])->name('users.edit');
-
-    Route::get('aircraft/create', [DashboardController::class, 'adminPlaceholder'])->name('aircraft.create');
-    Route::get('aircraft/{aircraft}/edit', [DashboardController::class, 'adminPlaceholder'])->name('aircraft.edit');
-    Route::delete('aircraft/{aircraft}', [DashboardController::class, 'adminPlaceholder'])->name('aircraft.destroy');
-
-    Route::get('instructors/create', [DashboardController::class, 'adminPlaceholder'])->name('instructors.create');
-    Route::get('instructors/{instructor}/edit', [DashboardController::class, 'adminPlaceholder'])->name('instructors.edit');
-    Route::delete('instructors/{instructor}', [DashboardController::class, 'adminPlaceholder'])->name('instructors.destroy');
+        Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
+    });
 });

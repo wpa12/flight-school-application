@@ -22,12 +22,12 @@ class LogoutControllerTest extends TestCase
 
     public function test_logout_redirects_to_login_page(): void
     {
-        $this->actingAs($this->user)->post('/logout')->assertRedirect(route('login'));
+        $this->actingAs($this->user)->post(route('dashboard.logout'))->assertRedirect(route('login'));
     }
 
     public function test_logout_invalidates_session(): void
     {
-        $this->actingAs($this->user)->post('/logout');
+        $this->actingAs($this->user)->post(route('dashboard.logout'));
         $this->assertGuest();
         $this->assertNull(session()->get('user_id'));
     }

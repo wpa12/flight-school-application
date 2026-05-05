@@ -27,26 +27,24 @@ class LoginControllerTest extends TestCase
 
     public function test_login_page_is_accessible(): void
     {
-        $response = $this->get('/login');
+        $response = $this->get(route('login'));
         $response->assertStatus(200);
     }
 
     public function test_login_page_contains_correct_content(): void
     {
-        $response = $this->get('/login');
+        $response = $this->get(route('login'));
         $response->assertSee('Login');
     }
 
     public function test_login_page_redirects_to_dashboard_if_authenticated(): void
     {
-        $this->actingAs($this->user)->get('/login')->assertRedirect('/dashboard');
+        $this->actingAs($this->user)->get(route('login'))->assertRedirect(route('dashboard.index'));
     }
 
     public function test_login_with_invalid_credentials(): void
     {
-        $this->actingAs($this->user)->post('/logout');
-
-        $response = $this->post('/login', [
+        $response = $this->post(route('login'), [
             'email' => 'test@example.com',
             'password' => 'wrong-password',
             'remember' => false,
