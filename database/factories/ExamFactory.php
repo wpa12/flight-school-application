@@ -18,26 +18,31 @@ class ExamFactory extends Factory
      */
     public function definition(): array
     {
+        $exams = self::examTypesCatalogAndPrices();
+        $price = fake()->randomElement(array_values($exams));
+        $examType = fake()->randomElement(array_keys($exams));
+
         return [
-            'type' => fake()->randomElement(self::examTypesCatalog()),
+            'type' => $examType,
             'description' => fake()->sentence(),
-            'total_price' => fake()->numberBetween(2, 100, 250),
+            'duration_minutes' => fake()->randomElement([60, 90, 120]), // 1, 1.5 or 2 hours
+            'total_price' => $price,
         ];
     }
 
-    public static function examTypesCatalog(): array
+    public static function examTypesCatalogAndPrices(): array
     {
         return [
-            'Airlaw',
-            'Navigation',
-            'Meteorology',
-            'Principles of Flight',
-            'Instrumentation',
-            'Aerodynamics',
-            'Performance',
-            'Airplane Performance',
-            'CFI Theory',
-            'ATPL Theory',
+            'Airlaw' => 50,
+            'Navigation' => 50,
+            'Meteorology' => 50,
+            'Principles of Flight' => 50,
+            'Instrument flight rules' => 100,
+            'Aerodynamics' => 50,
+            'Performance' => 50,
+            'Airplane Performance' => 50,
+            'CFI Theory' => 100,
+            'ATPL Theory' => 100,
         ];
     }
 }
