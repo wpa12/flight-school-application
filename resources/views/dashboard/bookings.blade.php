@@ -8,11 +8,9 @@
                 {{ $isAdmin ? 'Every reservation in the system.' : 'Upcoming and past reservations tied to your account.' }}
             </p>
         </div>
-        {{-- @if ($isAdmin) --}}
-            <a href="{{ route('dashboard.bookings.create') }}" class="inline-flex shrink-0 items-center justify-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 dark:bg-sky-500 dark:hover:bg-sky-400">
-                Create booking
-            </a>
-        {{-- @endif --}}
+        <a href="{{ route('dashboard.bookings.create') }}" class="inline-flex shrink-0 items-center justify-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 dark:bg-sky-500 dark:hover:bg-sky-400">
+            Create booking
+        </a>
     </div>
 
     @if ($bookings->isEmpty())
@@ -49,12 +47,23 @@
                             <td class="whitespace-nowrap px-4 py-3 text-slate-600 dark:text-slate-400">{{ $booking->booking_date_time_end?->format('M j, Y g:i A') }}</td>
                             <td class="whitespace-nowrap px-4 py-3 text-slate-600 dark:text-slate-400">{{ $booking->instructorDisplayName() ?? '—' }}</td>
                             <td class="whitespace-nowrap px-4 py-3">
-                                <span class="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium capitalize text-slate-800 dark:bg-slate-800 dark:text-slate-200">{{ $booking->booking_status }}</span>
+                                @if($booking->booking_status === \App\Enums\BookingStatus::CONFIRMED->value)
+                                    <span class="inline-flex rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium capitalize text-green-800 dark:bg-green-800 dark:text-green-200">{{ $booking->booking_status }}</span>
+                                @elseif($booking->booking_status === \App\Enums\BookingStatus::PENDING->value)
+                                    <span class="inline-flex rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium capitalize text-yellow-800 dark:bg-yellow-800 dark:text-yellow-200">{{ $booking->booking_status }}</span>
+                                @elseif($booking->booking_status === \App\Enums\BookingStatus::CANCELLED->value)
+                                    <span class="inline-flex rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium capitalize text-red-800 dark:bg-red-800 dark:text-red-200">{{ $booking->booking_status }}</span>
+                                @elseif($booking->booking_status === \App\Enums\BookingStatus::COMPLETED->value)
+                                    <span class="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium capitalize text-slate-800 dark:bg-slate-800 dark:text-slate-200">{{ $booking->booking_status }}</span>
+                                @endif
                             </td>
                             <td class="whitespace-nowrap px-4 py-3 text-slate-800 dark:text-slate-200">£{{ number_format((float) $booking->total_price, 2) }}</td>
                                 <td class="whitespace-nowrap px-4 py-3">
                                     <div class="flex flex-wrap items-center gap-2">
+                                        <a href="{{ route('dashboard.bookings.show', $booking) }}" class="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-800 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">View</a>
+                                        @if($isAdmin)
                                         <a href="{{ route('dashboard.bookings.edit', $booking) }}" class="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-800 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">Update</a>
+                                        @endif
                                         <form method="post" action="{{ route('dashboard.bookings.cancel', $booking) }}" class="inline" onsubmit="return confirm('Cancel this booking?');">
                                             @csrf
                                             @method('DELETE')

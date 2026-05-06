@@ -17,15 +17,20 @@
             <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                 <form
                     x-data="{
-                        bookableType: '',
-                        aircraftId: '',
-                        instructorId: '',
-                        examType: '',
-                        startDate: '',
-                        startTime: '',
-                        endDate: '',
-                        endTime: '',
-                        notes: '',
+                        bookableType: '{{ old('bookable_type', '') }}',
+                        bookableId: '{{ old('bookable_id', '') }}',
+                        aircraftId: '{{ old('bookable_id', '') }}',
+                        userId: '{{ old('user_id', '') }}',
+                        instructorId: '{{ old('instructor_id', '') }}',
+                        examType: '{{ old('exam_type', '') }}',
+                        startDate: '{{ old('start_date', '') }}',
+                        startTime: '{{ old('start_time', '') }}',
+                        durationHours: '{{ old('duration_hours', '') }}',
+                        totalPrice: 0,
+                        notes: '{{ old('notes', '') }}',
+
+                        aircraftHourlyRates: {{ Js::from($aircraftFleet->pluck('rental_price_per_hour', 'id')) }},
+                        examTotalPrices: {{ Js::from($exams->pluck('total_price', 'id')) }},
 
                         cardNumber: '',
                         cardExpiry: '',
@@ -38,10 +43,36 @@
                         get isExam() { return this.bookableType === 'exam' },
                         get hasTypeSelected() { return this.bookableType !== '' },
 
+                        get formattedTotalPrice() {
+                            return this.totalPrice.toFixed(2);
+                        },
+
                         resetTypeFields() {
                             this.aircraftId = '';
                             this.instructorId = '';
                             this.examType = '';
+                            this.durationHours = '';
+                            this.calculateTotalPrice();
+                        },
+
+                        calculateTotalPrice() {
+                            if (this.isExam && this.examType) {
+                                this.totalPrice = parseFloat(this.examTotalPrices[this.examType]) || 0;
+                            } else if ((this.isAircraft || this.isLesson) && this.aircraftId && this.durationHours) {
+                                const hourlyRate = parseFloat(this.aircraftHourlyRates[this.aircraftId]) || 0;
+                                const hours = parseFloat(this.durationHours) || 0;
+                                this.totalPrice = hourlyRate * hours;
+                            } else {
+                                this.totalPrice = 0;
+                            }
+                        },
+
+                        init() {
+                            this.$watch('durationHours', () => this.calculateTotalPrice())
+                            this.$watch('examType', () => this.calculateTotalPrice())
+                            this.$watch('aircraftId', () => this.calculateTotalPrice())
+                            this.$watch('bookableType', () => this.calculateTotalPrice())
+                            this.calculateTotalPrice();
                         },
 
                         formatCardNumber(e) {
@@ -96,13 +127,16 @@
                                 name="bookable_type"
                                 id="bookable_type"
                                 required
-                                class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:border-sky-400"
+                                class="mt-1.5 block w-full rounded-lg border bg-white px-3 py-2.5 text-slate-900 shadow-sm transition focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-white {{ $errors->has('bookable_type') ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20 dark:border-red-500' : 'border-slate-300 focus:border-sky-500 focus:ring-sky-500/20 dark:border-slate-700 dark:focus:border-sky-400' }}"
                             >
                                 <option value="">Select a booking type...</option>
-                                @foreach(\App\Enums\BookableType::cases() as $type)
-                                    <option value="{{ $type->value }}">{{ $type->label() }}</option>
+                                @foreach($bookableTypeCases as $type)
+                                    <option value="{{ $type->value }}" {{ old('bookable_type') === $type->value ? 'selected' : '' }}>{{ $type->label() }}</option>
                                 @endforeach
                             </select>
+                            @error('bookable_type')
+                                <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
                             <p class="mt-4 text-sm text-green-600 dark:text-green-400" x-show="isAircraft || isLesson">Landing fees and fuel costs are not included and will be made payable at each airport</p>
                         </div>
                     </div>
@@ -126,18 +160,22 @@
                                     <label for="aircraft_id" class="block text-sm font-medium text-slate-700 dark:text-slate-300">Aircraft</label>
                                     <select
                                         x-model="aircraftId"
-                                        name="aircraft_id"
+                                        name="bookable_id"
                                         id="aircraft_id"
+                                        :disabled="isExam"
                                         :required="isAircraft || isLesson"
-                                        class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:border-sky-400"
+                                        class="mt-1.5 block w-full rounded-lg border bg-white px-3 py-2.5 text-slate-900 shadow-sm transition focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-white {{ $errors->has('bookable_id') ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20 dark:border-red-500' : 'border-slate-300 focus:border-sky-500 focus:ring-sky-500/20 dark:border-slate-700 dark:focus:border-sky-400' }}"
                                     >
                                         <option value="">Select an aircraft...</option>
-                                        @foreach(\App\Models\Aircraft::isServiceable()->get() as $aircraft)
-                                            <option value="{{ $aircraft->id }}">
+                                        @foreach($aircraftFleet as $aircraft)
+                                            <option value="{{ $aircraft->id }}" {{ old('bookable_id') == $aircraft->id ? 'selected' : '' }}>
                                                 {{ $aircraft->registration }} - {{ $aircraft->make }} {{ $aircraft->model }} (£{{ number_format($aircraft->rental_price_per_hour, 2) }}/hr)
                                             </option>
                                         @endforeach
                                     </select>
+                                    @error('bookable_id')
+                                        <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                    @enderror
                                     <p class="mt-4 text-sm text-green-600 dark:text-green-400" x-show="isAircraft || isLesson">Ensure you hold the correct certification for the aircraft you are booking.</p>
                                 </div>
                             </div>
@@ -159,15 +197,18 @@
                                         name="instructor_id"
                                         id="instructor_id"
                                         :required="isLesson"
-                                        class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:border-sky-400"
+                                        class="mt-1.5 block w-full rounded-lg border bg-white px-3 py-2.5 text-slate-900 shadow-sm transition focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-white {{ $errors->has('instructor_id') ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20 dark:border-red-500' : 'border-slate-300 focus:border-sky-500 focus:ring-sky-500/20 dark:border-slate-700 dark:focus:border-sky-400' }}"
                                     >
                                         <option value="">Select an instructor...</option>
-                                        @foreach(\App\Models\Instructor::all() as $instructor)
-                                            <option value="{{ $instructor->id }}">
+                                        @foreach($instructors as $instructor)
+                                            <option value="{{ $instructor->id }}" {{ old('instructor_id') == $instructor->id ? 'selected' : '' }}>
                                                 {{ $instructor->first_name }} {{ $instructor->last_name }}
                                             </option>
                                         @endforeach
                                     </select>
+                                    @error('instructor_id')
+                                        <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                    @enderror
                                 </div>
                             </div>
 
@@ -185,18 +226,51 @@
                                     <label for="exam_type" class="block text-sm font-medium text-slate-700 dark:text-slate-300">Exam Type</label>
                                     <select
                                         x-model="examType"
-                                        name="exam_type"
+                                        name="bookable_id"
                                         id="exam_type"
+                                        :disabled="!isExam"
                                         :required="isExam"
-                                        class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:border-sky-400"
+                                        class="mt-1.5 block w-full rounded-lg border bg-white px-3 py-2.5 text-slate-900 shadow-sm transition focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-white {{ $errors->has('exam_type') ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20 dark:border-red-500' : 'border-slate-300 focus:border-sky-500 focus:ring-sky-500/20 dark:border-slate-700 dark:focus:border-sky-400' }}"
                                     >
                                         <option value="">Select an exam type...</option>
-                                        @foreach(\App\Models\Exam::all() as $exam)
-                                            <option value="{{ $exam->id }}">{{ $exam->type }} (£{{ number_format($exam->total_price, 2) }})</option>
+                                        @foreach($exams as $exam)
+                                            <option value="{{ $exam->id }}" {{ old('exam_type') == $exam->id ? 'selected' : '' }}>{{ $exam->type }} (£{{ number_format($exam->total_price, 2) }}) - {{ $exam->duration_minutes }} minute(s)</option>
+                                        @endforeach
+                                    </select>
+                                    @error('exam_type')
+                                        <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            @if(Auth::user()->is_admin)
+                            <div
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 translate-y-2"
+                                x-transition:enter-end="opacity-100 translate-y-0"
+                                class="rounded-2xl border border-slate-200 bg-slate-50/80 p-6 shadow-sm ring-1 ring-slate-200/60 dark:border-slate-800 dark:bg-slate-900/60 dark:ring-slate-800/80"
+                            >
+                                <h2 class="text-lg font-semibold text-slate-900 dark:text-white">User</h2>
+                                <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Select the user for this booking</p>
+
+                                <div class="mt-4">
+                                    <label for="user_id" class="block text-sm font-medium text-slate-700 dark:text-slate-300">User</label>
+                                    <select
+                                        name="user_id"
+                                        id="user_id"
+                                        required
+                                        class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:border-sky-400"
+                                    >
+                                        <option value="">Select a user...</option>
+                                        @foreach($users as $user)
+                                            <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
                                         @endforeach
                                     </select>
                                 </div>
                             </div>
+                            @else
+                            <input type="hidden" name="user_id" id="user_id" value="{{ request()->user()->id }}"/>
+                            @endif
 
                             <div
                                 x-transition:enter="transition ease-out duration-200"
@@ -220,9 +294,14 @@
                                             name="start_date"
                                             id="start_date"
                                             required
+                                            value="{{ old('start_date') }}"
                                             :min="new Date().toISOString().split('T')[0]"
-                                            class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:border-sky-400"
+                                            class="mt-1.5 block w-full rounded-lg border bg-white px-3 py-2.5 text-slate-900 shadow-sm transition focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-white {{ $errors->has('start_date') ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20 dark:border-red-500' : 'border-slate-300 focus:border-sky-500 focus:ring-sky-500/20 dark:border-slate-700 dark:focus:border-sky-400' }}"
+                                            autocomplete="off"
                                         >
+                                        @error('start_date')
+                                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                        @enderror
                                     </div>
 
                                     <div>
@@ -233,39 +312,38 @@
                                             name="start_time"
                                             id="start_time"
                                             required
+                                            value="{{ old('start_time') }}"
                                             min="06:00"
                                             max="20:00"
                                             step="1800"
-                                            class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:border-sky-400"
+                                            class="mt-1.5 block w-full rounded-lg border bg-white px-3 py-2.5 text-slate-900 shadow-sm transition focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-white {{ $errors->has('start_time') ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20 dark:border-red-500' : 'border-slate-300 focus:border-sky-500 focus:ring-sky-500/20 dark:border-slate-700 dark:focus:border-sky-400' }}"
+                                            autocomplete="off"
                                         >
+                                        @error('start_time')
+                                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                        @enderror
                                     </div>
 
-                                    <div x-show="isAircraft || isLesson">
-                                        <label for="end_date" class="block text-sm font-medium text-slate-700 dark:text-slate-300">End Date</label>
+                                    <div x-show="isAircraft || isLesson" class="sm:col-span-2">
+                                        <label for="duration_hours" class="block text-sm font-medium text-slate-700 dark:text-slate-300">Duration (hours)</label>
                                         <input
-                                            x-model="endDate"
-                                            type="date"
-                                            name="end_date"
-                                            id="end_date"
-                                            required
-                                            :min="startDate || new Date().toISOString().split('T')[0]"
-                                            class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:border-sky-400"
+                                            x-model="durationHours"
+                                            type="number"
+                                            name="duration_hours"
+                                            id="duration_hours"
+                                            value="{{ old('duration_hours') }}"
+                                            min="0.25"
+                                            max="24"
+                                            step="0.25"
+                                            @change="calculateTotalPrice()"
+                                            :required="isAircraft || isLesson"
+                                            :disabled="isExam"
+                                            class="mt-1.5 block w-full max-w-xs rounded-lg border bg-white px-3 py-2.5 text-slate-900 shadow-sm transition focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-white {{ $errors->has('duration_hours') ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20 dark:border-red-500' : 'border-slate-300 focus:border-sky-500 focus:ring-sky-500/20 dark:border-slate-700 dark:focus:border-sky-400' }}"
                                         >
-                                    </div>
-
-                                    <div x-show="isAircraft || isLesson">
-                                        <label for="end_time" class="block text-sm font-medium text-slate-700 dark:text-slate-300">End Time</label>
-                                        <input
-                                            x-model="endTime"
-                                            type="time"
-                                            name="end_time"
-                                            id="end_time"
-                                            required
-                                            min="06:00"
-                                            max="21:00"
-                                            step="1800"
-                                            class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:border-sky-400"
-                                        >
+                                        <p class="mt-1 text-xs text-green-500 dark:text-green-400">Enter rental or lesson length (e.g. 1.5 for one and a half hours).</p>
+                                        @error('duration_hours')
+                                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                        @enderror
                                     </div>
                                 </div>
                             </div>
@@ -454,6 +532,10 @@
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                                <div class="mt-6 text-xl flex justify-center text-green-500 dark:text-green-400">
+                                    Total: £<span x-text="formattedTotalPrice"></span>
+                                    <input type="hidden" name="total_price" x-model="totalPrice">
                                 </div>
                             </div>
 
