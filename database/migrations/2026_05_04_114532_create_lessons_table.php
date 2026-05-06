@@ -16,8 +16,6 @@ return new class extends Migration
             $table->foreignId('aircraft_id')->constrained('aircraft')->onDelete('cascade');
             $table->foreignId('instructor_id')->constrained('instructors')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('departure_airport_id')->constrained('airports')->onDelete('cascade');
-            $table->foreignId('arrival_airport_id')->constrained('airports')->onDelete('cascade');
             $table->decimal('total_price')->default(0);
             $table->timestamps();
         });
