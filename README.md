@@ -27,7 +27,8 @@ Admin user credentials
 you can access a user from the database by getting their email address
 passwords for all users is `password`
 
-Mailpit is accessible at to view notifications
+Mailpit is accessible at to view notifications - be sure to run the queue worker `sail artisan queue:work`
+
 ```
 http://localhost:8025
 ```
