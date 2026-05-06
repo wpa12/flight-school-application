@@ -7,6 +7,7 @@ use App\Http\Controllers\LogoutController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\RegistrationController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BookingController;
 
 // public routes
 Route::get('/', [PageController::class, 'index']);
@@ -32,9 +33,12 @@ Route::middleware(['auth'])->group(function (): void {
         
         // booking dashboard routes
         Route::prefix('bookings')->name('bookings.')->group(function (): void {
-            Route::get('/create', [DashboardController::class, 'adminPlaceholder'])->name('create');
-            Route::get('/{booking}/edit', [DashboardController::class, 'adminPlaceholder'])->name('edit');
-            Route::delete('/{booking}', [DashboardController::class, 'adminPlaceholder'])->name('destroy');
+            Route::get('/create', [BookingController::class, 'create'])->name('create');
+            Route::get('/{booking}', [BookingController::class, 'show'])->name('show');
+            Route::post('/create', [BookingController::class, 'store'])->name('store');
+            Route::get('/{booking}/edit', [BookingController::class, 'edit'])->name('edit')->middleware('admin');
+            Route::put('/{booking}', [BookingController::class, 'update'])->name('update')->middleware('admin');
+            Route::delete('/{booking}', [BookingController::class, 'cancel'])->name('cancel');
         });
         
         // user dashboard routes

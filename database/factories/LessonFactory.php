@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\Aircraft;
 use App\Models\Instructor;
 use App\Models\User;
-use App\Models\Airport;
 
 /**
  * @extends Factory<Lesson>
@@ -25,8 +24,6 @@ class LessonFactory extends Factory
             'aircraft_id' => Aircraft::query()->pluck('id')->random(),
             'instructor_id' => Instructor::query()->pluck('id')->random(),
             'user_id' => User::query()->pluck('id')->random(),
-            'departure_airport_id' => fake()->randomElement(Airport::query()->pluck('id')->toArray()),
-            'arrival_airport_id' => fake()->randomElement(Airport::query()->pluck('id')->toArray()),
             'total_price' => fake()->randomFloat(2, 100, 1000),
         ];
     }

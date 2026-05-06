@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
-#[Fillable(['bookable_id', 'bookable_type', 'user_id', 'instructor_id', 'booking_date_time_start', 'booking_date_time_end', 'total_price', 'booking_status'])]
+#[Fillable(['bookable_id', 'bookable_type', 'user_id', 'instructor_id', 'booking_date_time_start', 'booking_date_time_end', 'total_price', 'booking_status', 'reminder_sent'])]
 class Booking extends Model
 {
     /** @use HasFactory<\Database\Factories\BookingFactory> */
@@ -19,6 +19,8 @@ class Booking extends Model
         return [
             'booking_date_time_start' => 'datetime',
             'booking_date_time_end' => 'datetime',
+            'reminder_sent' => 'boolean',
+            'total_price' => 'decimal:2',
         ];
     }
 

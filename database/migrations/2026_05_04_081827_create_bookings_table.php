@@ -16,10 +16,12 @@ return new class extends Migration
             $table->morphs('bookable');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('instructor_id')->nullable()->constrained('instructors')->nullOnDelete(); // not all bookings require an instructor
-            $table->datetime('booking_date_time_start'); // date and time plane is due to be out
-            $table->datetime('booking_date_time_end'); // date and time the plane is due to be back
+            $table->datetime('booking_date_time_start');
+            $table->datetime('booking_date_time_end');
             $table->decimal('total_price')->unsigned()->default(0);
             $table->string('booking_status')->default('pending');
+            $table->string('notes')->nullable();
+            $table->boolean('reminder_sent')->default(false);
             $table->timestamps();
         });
     }
