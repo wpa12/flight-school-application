@@ -8,7 +8,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use App\Models\Booking;
 
-class BookingReminderNotification extends Notification
+class BookingReminderNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 

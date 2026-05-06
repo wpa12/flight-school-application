@@ -8,7 +8,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use App\Models\Booking;
 
-class BookingConfirmationNotification extends Notification
+class BookingConfirmationNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -37,8 +37,9 @@ class BookingConfirmationNotification extends Notification
     {
         return (new MailMessage)
             ->greeting('Hello ' . ($notifiable->name ?? 'there') . ',')
-            ->line('Your booking '. $this->booking->bookableSummary() . 'at' . $this->booking->booking_date_time_start->format('M j, Y g:i A') . 'has been confirmed.')
+            ->line('Your booking '. $this->booking->bookableSummary() . ' at ' . $this->booking->booking_date_time_start->format('M j, Y g:i A') . ' has been confirmed.')
             ->action('View your bookings on the dashboard', route('dashboard.index'))
+            ->line('Total price: £' . $this->booking->total_price)
             ->line('Thank you for using Bristol Flight School!');
     }
 
